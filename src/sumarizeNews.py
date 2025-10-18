@@ -1,7 +1,8 @@
+import streamlit as st
 from openai import OpenAI
-import os
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 def summarize_article(title, content):
     prompt = f"Summarize this African startup news article in 300 words:\n\nTitle: {title}\n\nContent: {content}"
