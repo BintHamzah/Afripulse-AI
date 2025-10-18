@@ -1,19 +1,15 @@
-from pathlib import Path
 import streamlit as st
-import subprocess
+from src.main import summaries_array, digest_md
 
-st.title("AfriPulse AI – Africa Startup Digest")
+# st.write("DEBUG: summaries_array", summaries_array)
+# st.write("DEBUG: digest_md", digest_md)
 
-digest_path = Path(__file__).resolve().parent / "outputs" / "weeklyDigest.md"
+if __name__ == "__main__":
+    st.title("AfriPulse AI – Africa Startup Digest")
 
-if digest_path.exists():
-    with open(digest_path, "r", encoding="utf-8") as f:
-        digest = f.read()
-    st.markdown(digest)
-else:
-    st.warning("No digest found. Please run `python -m src.main.py` first.")
-
-    if st.button("Generate Weekly Digest Now"):
-        with st.spinner("Fetching and summarizing latest Africa startup news..."):
-            subprocess.run(["python", "src/main.py"])
-        st.success("Digest generated! Please reload the dashboard.")
+    if summaries_array:
+        for i, article in enumerate(summaries_array, 1):
+            st.markdown(f"**{i}. [{article['title']}]({article['url']})**")
+            st.write(article['summary'])
+    else:
+        st.warning("No news found. Please check your API key or run -m src.main first.")
