@@ -1,48 +1,47 @@
 import os
 import requests
-import json
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-os.makedirs(DATA_DIR, exist_ok=True)
+from datetime import datetime, timedelta
+from bs4 import BeautifulSoup
 
-NEWS_API_KEY = os.getenv("NEWS_API_KEY")
-SAMPLE_FILE = os.path.join(DATA_DIR, "afriNews.json")
+# This file handles external API calls and basic data cleaning
+
+NEWS_API_KEY = os.environ.get("NEWS_API_KEY")
+
+def clean_text(text):
+    """Removes HTML tags from text."""
+    if not text:
+        return ""
+    soup = BeautifulSoup(text, 'html.parser')
+    return soup.get_text().strip()
 
 
-def fetch_africa_news():
-    url = (
-        f"https://newsapi.org/v2/everything?"
-        f"q=africa+startup+funding&language=en&sortBy=publishedAt&pageSize=50&apiKey={NEWS_API_KEY}"
-    )
+def fetch_news_api():
+    """Fetches relevant news headlines from NewsAPI, focusing on business/tech."""
+    if not NEWS_API_KEY:
+        # This print statement will only show if the environment variable is not set
+        print("NEWS_API_KEY not set.") 
+        return []
+
+    print("Fetching news from NewsAPI...")
+    q_query = "startup OR 'venture capital' OR 'funding' OR business technology"
+    
+    # Fetch articles from the last 7 days
+    from_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+    params = {
+        'q': q_query,
+        'language': 'en',
+        'sortBy': 'publishedAt',
+        'from': from_date,
+        'pageSize': 100, 
+        'apiKey': NEWS_API_KEY
+    }
     
     try:
-        response = requests.get(url)
+        response = requests.get('https://newsapi.org/v2/everything', params=params, timeout=15)
+        response.raise_for_status() 
         data = response.json()
-        print("Response status:", data.get("status", "unknown"))
-
-        # If API call successful
-        if data.get("status") == "ok":
-            articles = data.get("articles", [])
-            print(f"Successfully fetched {len(articles)} articles.")
-
-            # Save backup file for offline use
-            with open(SAMPLE_FILE, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2)
-                print("Saved a local copy of fetched news.")
-            return articles
-
-        # If error (rate limit, bad key, etc.)
-        else:
-            print(f"API Error: {data.get('message', 'Unknown error')}")
-            if os.path.exists(SAMPLE_FILE):
-                print("Loading from local backup file...")
-                with open(SAMPLE_FILE, "r", encoding="utf-8") as f:
-                    cached = json.load(f)
-                    return cached.get("articles", [])
-            else:
-                print("No local backup found.")
-                return []
-
-    except Exception as e:
-        print(f"Exception occurred: {e}")
+        print(f"NewsAPI returned {len(data.get('articles', []))} articles.")
+        return data.get('articles', [])
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching NewsAPI data: {e}")
         return []
