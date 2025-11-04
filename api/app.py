@@ -2,10 +2,9 @@ import os
 from datetime import datetime
 
 # === Imports from Modular Files ===
-from src.summarizeNews import summarize_article 
-from src.fetchNews import fetch_news_api, clean_text
-from src.filterNews import filter_africa_stories, rank_and_select_top_stories
-
+from summarizeNews import summarize_article
+from fetchNews import fetch_news_api, clean_text
+from filterNews import filter_africa_stories, rank_and_select_top_stories
 # === Firestore Imports for Cloud Environment ===
 import firebase_admin
 from firebase_admin import firestore
@@ -70,6 +69,7 @@ def save_to_firestore(top_stories):
 
 
 def run_digest_generation():
+    print("--- Running run_digest_generation ---")
     """
     Orchestrates the entire weekly digest generation process by calling 
     functions from the dedicated modules.
@@ -86,21 +86,21 @@ def run_digest_generation():
         return {"error": "No articles fetched."}
 
     # [2] Filter Stories
-    relevant_stories = filter_africa_stories(all_articles)
+    # relevant_stories = filter_africa_stories(all_articles)
     
-    if not relevant_stories:
-        # Save an empty digest to update the 'latest' pointer even if no stories found
-        return save_to_firestore([]) 
+    # if not relevant_stories:
+    #     # Save an empty digest to update the 'latest' pointer even if no stories found
+    #     return save_to_firestore([]) 
 
-    print("Starting AI summarization (This may take a moment)...")
-    for story in relevant_stories:
-        # [3] Clean and Summarize
-        story['description'] = clean_text(story.get('description', ''))
-        story['summary'] = summarize_article(story, GEMINI_API_KEY)
-        print(f"    Summary complete for: {story.get('title', 'Unknown Title')[:50]}...")
+    # print("Starting AI summarization (This may take a moment)...")
+    # for story in relevant_stories:
+    #     # [3] Clean and Summarize
+    #     story['description'] = clean_text(story.get('description', ''))
+    #     story['summary'] = summarize_article(story, GEMINI_API_KEY)
+    #     print(f"    Summary complete for: {story.get('title', 'Unknown Title')[:50]}...")
 
     # [4] Select Top 10
-    top_10_stories = rank_and_select_top_stories(relevant_stories)
+    # top_10_stories = rank_and_select_top_stories(relevant_stories)
 
     # [5] Save the final content to Firestore
-    return save_to_firestore(top_10_stories)
+    # return save_to_firestore(top_10_stories)

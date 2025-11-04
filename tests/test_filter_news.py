@@ -1,6 +1,6 @@
 
 import unittest
-from src.filterNews import filter_africa_stories
+from filterNews import filter_africa_stories
 
 class TestFilterNews(unittest.TestCase):
 
