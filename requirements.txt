@@ -10,3 +10,4 @@ python-dotenv
 jupyterlab 
 openai
 firebase-admin
+flask
