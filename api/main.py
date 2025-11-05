@@ -8,6 +8,15 @@ from app import run_digest_generation
 
 app = Flask(__name__)
 
+
+@app.route('/', methods=['GET'])
+def health_check():
+    """
+    Health check endpoint for Google Cloud Run.
+    """
+    return "OK", 200
+
+
 @app.route('/', methods=['POST'])
 def generate_digest_http():
     """

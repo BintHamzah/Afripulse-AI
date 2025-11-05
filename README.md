@@ -37,12 +37,28 @@ The project follows a decoupled, serverless model:
    source venv/bin/activate
 
    # Install dependencies
-   pip install -r requirements.lock
+   pip install -r api/requirements.txt
    ```
 
-2. **Set Up Authentication (Local Backend)**
+2. **Set Up Firebase (Frontend)**
 
-   The Python backend uses Application Default Credentials (ADC) to authenticate as an administrator and write to your live Firestore database.
+The frontend requires a Firebase configuration to connect to your Firestore database. Open `index.html` and replace the placeholder `firebaseConfig` object with your own Firebase project's configuration.
+
+   ```javascript
+   const firebaseConfig = {
+       apiKey: "YOUR_API_KEY",
+       authDomain: "YOUR_AUTH_DOMAIN",
+       projectId: "YOUR_PROJECT_ID",
+       storageBucket: "YOUR_STORAGE_BUCKET",
+       messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+       appId: "YOUR_APP_ID",
+       measurementId: "YOUR_MEASUREMENT_ID"
+   };
+   ```
+
+3. **Set Up Authentication (Local Backend)**
+
+The Python backend uses Application Default Credentials (ADC) to authenticate as an administrator and write to your live Firestore database.
 
    ```bash
    # Authenticate your terminal session
@@ -52,40 +68,40 @@ The project follows a decoupled, serverless model:
    gcloud auth application-default login
    ```
 
-3. **Set Environment Variables**
+4. **Set Environment Variables**
 
-   Since the script reads API keys from the environment, set them in your terminal session. Replace the placeholders:
+Since the script reads API keys from the environment, set them in your terminal session. Replace the placeholders:
 
    ```bash
    export NEWS_API_KEY="your_news_api_key_here"
    export GEMINI_API_KEY="your_gemini_api_key_here"
    ```
 
-4. **Run the Backend Worker Locally**
+5. **Run the Backend Worker Locally**
 
-   To simulate the scheduled run and write data to your live Firestore:
+To simulate the scheduled run and write data to your live Firestore:
 
    ```bash
    # The 'main.py' file now contains the Flask-based HTTP entry point.
    # We call it directly using the Python interpreter.
-   python -c "import main; main.generate_digest_http(None)"
+   python -c "from api.main import generate_digest_http; generate_digest_http(None)"
    ```
 
    To run in mock mode (no API keys required):
 
    ```bash
    export MOCK_MODE=true
-   python -c "import main; main.generate_digest_http(None)"
+   python -c "from api.main import generate_digest_http; generate_digest_http(None)"
    ```
 
    Verify the data appears in the `digests` collection in your Firebase console.
 
-5. **Run the Frontend Locally**
+6. **Run the Frontend Locally**
 
-   Use the Firebase CLI to serve the static `index.html` page, allowing its JavaScript to securely connect to Firestore and display the digest.
+Use the Firebase CLI to serve the static `index.html` page, allowing its JavaScript to securely connect to Firestore and display the digest.
 
    ```bash
-   # If you haven't yet, initialize Firebase Hosting in the root (public directory: .)
+   # If you haven't yet, initialize Firebase Hosting in the root (public directory: ./)
    firebase init hosting
 
    # Start the local server
@@ -94,7 +110,7 @@ The project follows a decoupled, serverless model:
 
    Open the provided local URL (http://localhost:XXXX) to view the website.
 
-6. **Running Tests**
+7. **Running Tests**
 
    ```bash
    python -m unittest discover -s tests
@@ -111,7 +127,7 @@ These steps are executed once in the Google Cloud Shell to deploy the fully auto
      --gen2 \
      --runtime python311 \
      --region us-central1 \
-     --source . \
+     --source ./api \
      --entry-point generate_digest_http \
      --trigger-http \
      --allow-unauthenticated \
